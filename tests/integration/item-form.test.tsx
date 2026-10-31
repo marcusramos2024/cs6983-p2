@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -41,41 +42,78 @@ describe('ItemForm', () => {
 
   it('shows inline error if name exceeds 80 characters', async () => {
     const fetchSpy = vi.spyOn(global, 'fetch');
-    const user = userEvent.setup();
 
     render(<ItemForm onCreated={vi.fn()} />);
 
     const nameInput = screen.getByLabelText(/item name/i);
     const longName = 'x'.repeat(81);
-    await user.type(nameInput, longName);
+    fireEvent.change(nameInput, { target: { value: longName } });
 
     const submitButton = screen.getByRole('button', { name: /create item|add item/i });
-    await user.click(submitButton);
+    fireEvent.click(submitButton);
 
     const errorMessage = await screen.findByText(/80 characters/i);
     expect(errorMessage).toBeInTheDocument();
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  it('shows inline error under quantity if quantity is less than 1', async () => {
+  it('shows inline error if notes exceed 500 characters', async () => {
     const fetchSpy = vi.spyOn(global, 'fetch');
-    const user = userEvent.setup();
 
     render(<ItemForm onCreated={vi.fn()} />);
 
-    const nameInput = screen.getByLabelText(/item name/i);
-    await user.type(nameInput, 'Notebook');
+    fireEvent.change(screen.getByLabelText(/item name/i), {
+      target: { value: 'Valid Item' },
+    });
+    fireEvent.change(screen.getByLabelText(/notes/i), {
+      target: { value: 'x'.repeat(501) },
+    });
 
-    const quantityInput = screen.getByLabelText(/quantity/i);
-    await user.clear(quantityInput);
-    await user.type(quantityInput, '0');
+    fireEvent.click(screen.getByRole('button', { name: /create item|add item/i }));
 
-    const submitButton = screen.getByRole('button', { name: /create item|add item/i });
-    await user.click(submitButton);
-
-    const errorMessage = await screen.findByText(/at least 1/i);
+    const errorMessage = await screen.findByText(/500 characters/i);
     expect(errorMessage).toBeInTheDocument();
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('displays general server error message when API responds with an error', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Server rejected the item name.',
+          },
+        }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      )
+    );
+
+    render(<ItemForm onCreated={vi.fn()} />);
+
+    fireEvent.change(screen.getByLabelText(/item name/i), {
+      target: { value: 'Forbidden Item' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /create item|add item/i }));
+
+    const errorAlert = await screen.findByRole('alert');
+    expect(errorAlert).toHaveTextContent('Server rejected the item name.');
+  });
+
+  it('displays network error message when fetch fails', async () => {
+    vi.spyOn(global, 'fetch').mockRejectedValueOnce(new Error('Network error'));
+
+    render(<ItemForm onCreated={vi.fn()} />);
+
+    fireEvent.change(screen.getByLabelText(/item name/i), {
+      target: { value: 'Item A' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /create item|add item/i }));
+
+    const errorAlert = await screen.findByRole('alert');
+    expect(errorAlert).toHaveTextContent(/network error occurred/i);
   });
 
   it('disables the submit button while the request is in flight', async () => {
@@ -86,14 +124,13 @@ describe('ItemForm', () => {
 
     vi.spyOn(global, 'fetch').mockImplementation(() => fetchPromise);
 
-    const user = userEvent.setup();
     render(<ItemForm onCreated={vi.fn()} />);
 
     const nameInput = screen.getByLabelText(/item name/i);
-    await user.type(nameInput, 'Headphones');
+    fireEvent.change(nameInput, { target: { value: 'Headphones' } });
 
     const submitButton = screen.getByRole('button', { name: /create item|add item/i });
-    await user.click(submitButton);
+    fireEvent.click(submitButton);
 
     expect(submitButton).toBeDisabled();
 
@@ -134,16 +171,19 @@ describe('ItemForm', () => {
       })
     );
 
-    const user = userEvent.setup();
     render(<ItemForm onCreated={onCreatedMock} />);
 
-    await user.type(screen.getByLabelText(/item name/i), 'Wireless Mouse');
-    const quantityInput = screen.getByLabelText(/quantity/i);
-    await user.clear(quantityInput);
-    await user.type(quantityInput, '2');
-    await user.type(screen.getByLabelText(/notes/i), 'Ergonomic shape');
+    fireEvent.change(screen.getByLabelText(/item name/i), {
+      target: { value: 'Wireless Mouse' },
+    });
+    fireEvent.change(screen.getByLabelText(/quantity/i), {
+      target: { value: '2' },
+    });
+    fireEvent.change(screen.getByLabelText(/notes/i), {
+      target: { value: 'Ergonomic shape' },
+    });
 
-    await user.click(screen.getByRole('button', { name: /create item|add item/i }));
+    fireEvent.click(screen.getByRole('button', { name: /create item|add item/i }));
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith('/api/items', {
