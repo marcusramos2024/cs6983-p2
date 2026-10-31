@@ -7,12 +7,17 @@ Status: methodology complete; results not yet run. Every result cell below must 
 
 ### 1.1 Feature under test
 
-- Issue: #[PLACEHOLDER: N] "[PLACEHOLDER: issue title]" (Sprint 1)
-- Why this issue: [PLACEHOLDER: one sentence]. Suggested pick: the creation-form issue, because it touches the mockup, validation, the API layer and tests at once, so differences in all four dimensions show up.
-- Acceptance criteria (copied from the issue so both runs are judged against the same list):
-  1. [PLACEHOLDER]
-  2. [PLACEHOLDER]
-  3. [PLACEHOLDER]
+- Issue: #5 "[PLACEHOLDER] Add [PLACEHOLDER: core entity] creation form" (Sprint 1)
+- Why this issue: it touches the UI, validation, the API layer and tests at once, so differences in all four dimensions can show up.
+- IMPORTANT: the P2 PRD and mockups did not exist when this test was set up, so the feature below is a minimal stand-in definition, not real P2 content. If the real PRD is ready before the runs, replace it with the real story and keep both prompts identical apart from the rules pointer.
+- Stand-in definition: the core entity is an `Item` with `name` (required, 1 to 80 characters), `quantity` (whole number, at least 1, default 1) and `notes` (optional, up to 500 characters). The form lives on `/items/new`, posts to `POST /api/items`, and on success returns to `/items` with the new item at the top. No database yet: an in-memory store behind the service layer is acceptable for this test.
+- Acceptance criteria (both runs are judged against this list):
+  1. Submitting a valid item creates it and shows it at the top of the list.
+  2. Empty name, name over 80 characters, or quantity below 1 shows an inline error under the field and nothing is saved.
+  3. The API rejects the same invalid input with a 400 and an error message, even if the client check is bypassed.
+  4. The submit button is disabled while the request is in flight.
+  5. Every input has a visible label.
+  6. Tests exist for the validation rules and the API route, and they pass.
 
 ### 1.2 Controlled variables
 
@@ -38,12 +43,12 @@ git tag hw3-baseline            # the shared starting point
 git push origin hw3-baseline
 
 # Run A: without rules
-git checkout -b experiment/[N]-without-rules hw3-baseline
+git checkout -b hw3/run-a-no-rules hw3-baseline
 git rm AGENTS.md CLAUDE.md 2>/dev/null; git rm -r .agents 2>/dev/null
-git commit -m "chore: remove rules files for HW3 baseline run (#[N])"
+git commit -m "chore: remove rules files for HW3 baseline run (#5)"
 
 # Run B: with rules
-git checkout -b experiment/[N]-with-rules hw3-baseline
+git checkout -b hw3/run-b-with-rules hw3-baseline
 ```
 
 How the rules file is disabled for run A:
@@ -52,21 +57,22 @@ How the rules file is disabled for run A:
 - Close and reopen the workspace in the IDE after switching branches so the tool does not keep a cached copy of the rules.
 - Leave `docs/PRD.md` and `docs/design/` in place on both branches. Run A is not told about them; note in the results whether the agent found them anyway.
 
-Both experiment branches are pushed and kept (not merged) as evidence. The winning implementation is then redone or cherry-picked on the real branch `feature/[N]-[PLACEHOLDER: short-description]` and goes through a normal PR.
+Both experiment branches are pushed and kept (not merged) as evidence. The winning implementation is then redone or cherry-picked on the real branch `feature/5-add-item-creation-form` and goes through a normal PR.
 
 ### 1.4 Exact prompts
 
-Run A (without rules), brief description only:
+Run A (without rules), brief description only. Paste exactly:
 ```
-Implement this feature: [PLACEHOLDER: issue title]. [PLACEHOLDER: one-sentence description of the feature, e.g. "Users should be able to add a new item with a name, quantity and date."] Include tests.
+Implement this feature: add an item creation form. Users should be able to add a new item with a name, a quantity and optional notes, and see it in the item list. Include tests.
 ```
 
-Run B (with rules):
+Run B (with rules). Paste exactly:
 ```
-Implement GitHub issue #[N]: [PLACEHOLDER: issue title]. [PLACEHOLDER: same one-sentence description as run A.] Include tests.
+Implement GitHub issue #5: add an item creation form. Users should be able to add a new item with a name, a quantity and optional notes, and see it in the item list. Include tests.
 
-Follow AGENTS.md. Before writing code, read the user story and acceptance criteria for this issue in docs/PRD.md and the mockup in docs/design/[PLACEHOLDER: file], then give me a short plan. Work test-first and use the branch, commit and naming conventions in AGENTS.md.
+Follow AGENTS.md. Before writing code, read the acceptance criteria for issue #5 in before-after-comparison.md section 1.1, docs/PRD.md and DESIGN.md, then give me a short plan. Work test-first and use the branch, commit and naming conventions in AGENTS.md.
 ```
+Note: run B points at section 1.1 of this file because docs/PRD.md is still a stub. That gives run B the acceptance criteria and run A does not, which is the intended difference (rules and project context versus a brief description).
 
 Follow-up prompts actually used (record verbatim, or "none"):
 - Run A: [PLACEHOLDER]
@@ -178,4 +184,4 @@ Where run B still missed: [PLACEHOLDER]
 | v2 | [PLACEHOLDER] | [PLACEHOLDER] |
 | v2 | [PLACEHOLDER] | [PLACEHOLDER] |
 
-Optional confirmation run: re-run B with AGENTS.md v2 on `experiment/[N]-with-rules-v2` and add a column to table 2.1.
+Optional confirmation run: re-run B with AGENTS.md v2 on `hw3/run-b-with-rules-v2` and add a column to table 2.1.
