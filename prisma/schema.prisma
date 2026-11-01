@@ -72,3 +72,4 @@ model IncidentEvent {
   content    String?
   createdAt  DateTime @default(now())
 }
+

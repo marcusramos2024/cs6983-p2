@@ -177,3 +177,4 @@ describe("POST /api/incidents", () => {
     expect(data.incident.status).toBe("Open");
   });
 });
+

@@ -118,3 +118,4 @@ describe("validatePhotoFile", () => {
     expect(validatePhotoFile("file.svg", "image/svg+xml", 1024).valid).toBe(false);
   });
 });
+

@@ -121,3 +121,4 @@ export function validateIncidentInput(input: Partial<IncidentInput>): {
     errors,
   };
 }
+

@@ -28,3 +28,4 @@ export function getDaysIgnoredVariant(days: number): "muted" | "ack" | "open" {
   if (days <= 7) return "ack";
   return "open";
 }
+

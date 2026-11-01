@@ -57,3 +57,4 @@ export default function IncidentTimeline({ events }: IncidentTimelineProps) {
     </ol>
   );
 }
+

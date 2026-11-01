@@ -113,3 +113,4 @@ export default async function IncidentDetailPage({ params }: IncidentDetailPageP
     </div>
   );
 }
+

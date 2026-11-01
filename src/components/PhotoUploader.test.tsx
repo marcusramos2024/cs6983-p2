@@ -82,3 +82,4 @@ describe("PhotoUploader", () => {
     expect(screen.getByText(/Maximum 5 photos reached/i)).toBeInTheDocument();
   });
 });
+

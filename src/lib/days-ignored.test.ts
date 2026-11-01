@@ -18,3 +18,4 @@ describe("calculateDaysIgnored", () => {
     expect(calculateDaysIgnored(reportedAt, acknowledgedAt)).toBe(4);
   });
 });
+
