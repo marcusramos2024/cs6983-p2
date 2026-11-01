@@ -1,176 +1,184 @@
 {
-  "_instructions": "Replace every [PLACEHOLDER: ...] with P2 specifics from your PRD. One user story can become several issues. Keep titles action-oriented (start with a verb). milestone must be exactly 'Sprint 1' or 'Sprint 2'. Every issue needs one type label (feature, bug, chore, docs) and one priority label. setup_github.sh refuses to run while placeholders remain.",
+  "_instructions": "Paper Trail backlog. Issue numbers on GitHub match the order below (#1 to #13). Every issue has one type label, one priority label and a milestone.",
   "issues": [
     {
-      "title": "Scaffold Next.js app and deploy the empty starter to Vercel",
-      "user_story": "As a developer, I want a running starter app deployed from main so that deploying is never the risky last step.",
+      "title": "Scaffold the Next.js app and deploy it to Vercel",
+      "user_story": "As a developer, I want the empty app running on Vercel from day one so deploying is never the risky last step.",
       "acceptance_criteria": [
-        "Next.js + TypeScript (strict) + Tailwind app runs locally with npm run dev",
-        "Folder structure matches AGENTS.md section 1.3",
+        "Next.js 15 App Router + TypeScript (strict) + Tailwind runs locally with npm run dev",
+        "Tailwind theme is generated from the DESIGN.md tokens",
+        "Folder layout matches AGENTS.md section 1.3",
         "main deploys to production on Vercel and every PR gets a preview URL",
-        ".env.example lists required variable names only",
-        "/api/health returns 200 and confirms the database connection"
+        ".env.example lists DATABASE_URL, NEXTAUTH_SECRET, NEXTAUTH_URL and BLOB_READ_WRITE_TOKEN with no values",
+        "GET /api/health returns 200 and checks the database connection"
       ],
       "labels": ["chore", "priority:high"],
       "milestone": "Sprint 1",
       "estimate": "3"
     },
     {
-      "title": "Add CI pipeline with lint, tests, build and security scan",
-      "user_story": "As a developer, I want every PR checked automatically so that broken code cannot reach main.",
+      "title": "Add CI with lint, typecheck, tests, build and a security scan",
+      "user_story": "As a developer, I want every PR checked automatically so broken code can't reach main.",
       "acceptance_criteria": [
         ".github/workflows/ci.yml runs on every pull request",
-        "Stages run in order: lint and format, unit and integration tests, build, Playwright E2E",
-        "A security job runs npm audit (and CodeQL if enabled)",
+        "Jobs run in order: lint and typecheck, Vitest, next build, Playwright",
+        "npm audit runs as its own job and fails on high severity",
+        "Tests run against a Postgres service container, never the prod database",
         "Branch protection on main requires green CI and one approval",
-        "Husky pre-commit hook runs lint-staged locally"
+        "Husky pre-commit runs lint-staged"
       ],
       "labels": ["chore", "priority:high"],
       "milestone": "Sprint 1",
       "estimate": "3"
     },
     {
-      "title": "Implement sign in and sign out with [PLACEHOLDER: OAuth provider or JWT]",
-      "user_story": "As a [PLACEHOLDER: user type], I want to sign in so that my [PLACEHOLDER: data] is private to me.",
+      "title": "Add sign up and sign in with Tenant, Manager and Organizer roles",
+      "user_story": "As any user, I want to sign in and land on the screen for my role so I only see what I'm allowed to see. (PRD US1)",
       "acceptance_criteria": [
-        "Visitor can sign in from the landing page and lands on [PLACEHOLDER: /dashboard]",
-        "Signed-in user sees their name or avatar in the nav and can sign out",
-        "Visiting a protected page while signed out redirects to sign in",
-        "API routes return 401 for unauthenticated requests",
-        "Session is stored in an httpOnly cookie, not localStorage",
-        "Unit and integration tests cover signed-in, signed-out and expired-session cases"
+        "Sign up with email, password, role and building; passwords hashed with bcrypt",
+        "NextAuth credentials provider with JWT sessions; role and buildingId are in the token",
+        "Tenants land on /incidents, managers on /queue, organizers on /building",
+        "Signed-out users are redirected to /login",
+        "requireRole() helper returns 401 when signed out and 403 for the wrong role",
+        "Tests cover each role, signed out, wrong role and a bad password"
       ],
       "labels": ["feature", "priority:high"],
       "milestone": "Sprint 1",
       "estimate": "5"
     },
     {
-      "title": "Create the [PLACEHOLDER: core entity] data model and migration",
-      "user_story": "As a developer, I want the [PLACEHOLDER: core entity] schema in a migration so that both partners and CI share the same database shape.",
+      "title": "Create the Prisma schema for users, buildings, incidents and events",
+      "user_story": "As a developer, I want the data model in a migration so both of us and CI share the same database shape.",
       "acceptance_criteria": [
-        "prisma/schema.prisma defines [PLACEHOLDER: model] with fields [PLACEHOLDER: fields] and an owner relation to User",
-        "Migration file is committed (no schema changes made in a dashboard)",
-        "npm run db:seed creates [PLACEHOLDER: N] sample records for a test user",
-        "Service-layer unit tests cover create and read"
+        "Models User, Building, Incident, IncidentEvent and Photo as described in AGENTS.md section 1.3",
+        "Enums for role, category, reportedVia, status and event type",
+        "Migration committed under prisma/migrations",
+        "npm run db:seed creates 2 buildings, 1 manager, 1 organizer, 4 tenants and 6 incidents with events",
+        "lib/days-ignored.ts has unit tests for open, acknowledged and resolved incidents with frozen time"
       ],
       "labels": ["chore", "priority:high"],
       "milestone": "Sprint 1",
-      "estimate": "2"
+      "estimate": "3"
     },
     {
-      "title": "Add [PLACEHOLDER: core entity] creation form",
-      "user_story": "[PLACEHOLDER: copy user story 1 from the PRD, e.g. As a ___, I want to ___ so that ___.]",
+      "title": "Log an incident with photos",
+      "user_story": "As a tenant, I want to log a problem with photos and when I reported it so I have a dated record. (PRD US2)",
       "acceptance_criteria": [
-        "[PLACEHOLDER: AC 1 from the PRD]",
-        "[PLACEHOLDER: AC 2 from the PRD]",
-        "Form matches the mockup in docs/design/[PLACEHOLDER: file]",
-        "Invalid input shows inline errors under each field; the server also validates with Zod",
-        "New record appears in the list without a full page reload",
-        "Failing test committed before the implementation"
+        "Form at /incidents/new with category, title (required, max 120), description (max 2000), reported-at (required, not in the future) and reported-via",
+        "Up to 5 photos, JPEG/PNG/HEIC, 10 MB each, with previews and remove buttons",
+        "Invalid input shows an error under the field and nothing is saved",
+        "POST /api/incidents rejects the same invalid input with 400, even if the client check is skipped",
+        "On success the tenant lands on /incidents/[id] with a Reported event and 0 days ignored",
+        "Only tenants can create incidents (403 for other roles, 401 signed out)"
+      ],
+      "labels": ["feature", "priority:high"],
+      "milestone": "Sprint 1",
+      "estimate": "5"
+    },
+    {
+      "title": "Show the tenant incident list and timeline",
+      "user_story": "As a tenant, I want to see each incident as a timeline so I can show exactly what happened and when. (PRD US3)",
+      "acceptance_criteria": [
+        "/incidents lists my incidents newest first with status and days-ignored badges",
+        "/incidents/[id] shows events oldest first with mono timestamps, matching the wireframe",
+        "Days ignored counts whole days from reported-at to acknowledgement, or to now if not acknowledged",
+        "Opening another tenant's incident returns 404",
+        "Empty state with a Log an incident button; loading and error states present"
       ],
       "labels": ["feature", "priority:high"],
       "milestone": "Sprint 1",
       "estimate": "3"
     },
     {
-      "title": "Display the [PLACEHOLDER: core entity] list on the dashboard",
-      "user_story": "[PLACEHOLDER: copy user story 2 from the PRD]",
+      "title": "Build the manager queue with acknowledge, respond and resolve",
+      "user_story": "As a property manager, I want one queue of open issues so I can work through them oldest first. (PRD US4)",
       "acceptance_criteria": [
-        "[PLACEHOLDER: AC from the PRD, e.g. sort order or grouping]",
-        "Shows only the signed-in user's records",
-        "Has loading, empty (with call to action) and error states",
-        "Layout matches the mockup at desktop and 375px mobile widths",
-        "Integration test confirms a user cannot see another user's records"
+        "/queue lists open and acknowledged incidents for my buildings, sorted by days ignored, highest first",
+        "Acknowledge, Respond and Resolve each add a timestamped IncidentEvent",
+        "Respond and Resolve require a note; empty notes are rejected with 400",
+        "Acting on an incident in a building I don't manage returns 403",
+        "Layout matches the queue in docs/design/wireframe.html"
       ],
       "labels": ["feature", "priority:high"],
       "milestone": "Sprint 1",
-      "estimate": "3"
+      "estimate": "5"
     },
     {
-      "title": "Add PRD, DESIGN.md, mockups and AGENTS.md to the repo",
-      "user_story": "As a developer using AI tools, I want the PRD, design tokens and rules in the repo so that the agent builds from our designs.",
+      "title": "Push live status updates with server-sent events",
+      "user_story": "As a tenant, I want status changes to show up without refreshing so I know right away when someone responds. (PRD US5)",
       "acceptance_criteria": [
-        "docs/PRD.md contains problem, personas, user stories with acceptance criteria, and non-goals",
-        "Mockups are saved in docs/design/",
-        "DESIGN.md passes npx @google/design.md lint",
-        "AGENTS.md is at the root with no remaining placeholders; CLAUDE.md contains @AGENTS.md",
-        "Issue and PR templates are in .github/"
-      ],
-      "labels": ["docs", "priority:medium"],
-      "milestone": "Sprint 1",
-      "estimate": "2"
-    },
-    {
-      "title": "Allow editing and deleting a [PLACEHOLDER: core entity]",
-      "user_story": "[PLACEHOLDER: copy user story 3 from the PRD]",
-      "acceptance_criteria": [
-        "[PLACEHOLDER: AC from the PRD]",
-        "Delete asks for confirmation and can be cancelled",
-        "API returns 403 when a user edits or deletes a record they do not own",
-        "Unit, integration and E2E tests cover edit, delete and the forbidden case"
-      ],
-      "labels": ["feature", "priority:medium"],
-      "milestone": "Sprint 2",
-      "estimate": "3"
-    },
-    {
-      "title": "Implement [PLACEHOLDER: second core feature from the PRD]",
-      "user_story": "[PLACEHOLDER: copy user story 4 from the PRD]",
-      "acceptance_criteria": [
-        "[PLACEHOLDER: AC 1 from the PRD]",
-        "[PLACEHOLDER: AC 2 from the PRD]",
-        "Matches the mockup in docs/design/[PLACEHOLDER: file]",
-        "Error paths tested: empty input, invalid input, unauthenticated"
+        "GET /api/events streams new IncidentEvents the signed-in user is allowed to see",
+        "Tenant timeline, manager queue and organizer dashboard update within 5 seconds",
+        "Falls back to polling every 10 seconds if the stream drops",
+        "Two-browser Playwright test: manager acknowledges, tenant sees it without reloading"
       ],
       "labels": ["feature", "priority:high"],
       "milestone": "Sprint 2",
       "estimate": "5"
     },
     {
-      "title": "Add real-time updates for [PLACEHOLDER: what changes live]",
-      "user_story": "[PLACEHOLDER: user story that needs real-time updates or complex state, e.g. As a ___, I want to see ___ update without refreshing so that ___.]",
+      "title": "Build the organizer building dashboard",
+      "user_story": "As an organizer, I want to see every incident in my building so I can tell whether a problem is building-wide. (PRD US6)",
       "acceptance_criteria": [
-        "[PLACEHOLDER: what updates and within how many seconds]",
-        "Mechanism documented in AGENTS.md section 1.3 ([PLACEHOLDER: polling, SSE or websockets])",
-        "Two-browser Playwright test shows a change in one session appearing in the other"
+        "/building shows counts by category and status and median days to acknowledge",
+        "Incident list hides tenant names and shows units",
+        "Filters by category, status and date range",
+        "Flags a category as a pattern when 3 or more units report it within 30 days",
+        "Only organizers of that building can see it (403 otherwise)"
       ],
-      "labels": ["feature", "priority:medium"],
+      "labels": ["feature", "priority:high"],
       "milestone": "Sprint 2",
       "estimate": "5"
     },
     {
-      "title": "Expose a public read API for [PLACEHOLDER: resource] with OpenAPI docs",
-      "user_story": "As a developer integrating with the app, I want a documented API so that I can read [PLACEHOLDER: resource] programmatically.",
+      "title": "Export a building timeline PDF",
+      "user_story": "As an organizer, I want to export one PDF of every incident so I can attach it to a complaint. (PRD US7)",
       "acceptance_criteria": [
-        "GET /api/[PLACEHOLDER: resources] and GET /api/[PLACEHOLDER: resources]/:id return JSON in the shape documented",
-        "docs/api/openapi.yaml describes every endpoint, parameter and error response",
-        "Requests are authenticated and rate limited",
-        "Integration tests cover 200, 401, 404 and invalid parameters"
+        "Export PDF on /building downloads a file with a summary page and every incident in time order with its events",
+        "Respects the dashboard filters",
+        "Shows units, not tenant names, unless the tenant opted in",
+        "Photo thumbnails with timestamps",
+        "Integration test checks the PDF has one section per incident"
       ],
       "labels": ["feature", "priority:medium"],
       "milestone": "Sprint 2",
       "estimate": "3"
     },
     {
-      "title": "Add E2E coverage and accessibility checks for all user flows",
-      "user_story": "As a team, we want every user flow in AGENTS.md section 2.3 covered by an E2E test so that regressions are caught before merge.",
+      "title": "Add the public building report card API and OpenAPI docs",
+      "user_story": "As a prospective renter, I want a public score for a building so I can see how it treats tenants before I sign a lease. (PRD US8)",
       "acceptance_criteria": [
-        "One Playwright spec per user flow in AGENTS.md section 2.3",
-        "Each spec runs an axe check with zero serious or critical violations",
-        "E2E stage runs in CI against the preview or a local build",
-        "Coverage on lib/ is at least 80%"
+        "GET /api/buildings/:id/score returns buildingId, medianResponseHours, openCount and topCategories",
+        "No names, units, photos or incident text in the response",
+        "Rate limited to 60 requests per minute per IP (429 after that)",
+        "404 for unknown buildings",
+        "docs/api/openapi.yaml documents the endpoint, response and errors"
+      ],
+      "labels": ["feature", "priority:medium"],
+      "milestone": "Sprint 2",
+      "estimate": "3"
+    },
+    {
+      "title": "Add E2E tests and accessibility checks for every user flow",
+      "user_story": "As a team, we want every flow in AGENTS.md section 2.3 covered end to end so regressions get caught before merge.",
+      "acceptance_criteria": [
+        "One Playwright spec per flow: sign in, log incident, handle incident, tenant sees response, organizer export",
+        "Each spec runs axe with zero serious or critical violations",
+        "E2E job runs in CI against a seeded test database",
+        "Line coverage on lib/ is at least 80%"
       ],
       "labels": ["chore", "priority:medium"],
       "milestone": "Sprint 2",
       "estimate": "3"
     },
     {
-      "title": "Write README, architecture and database schema diagrams",
-      "user_story": "As a new contributor or grader, I want setup steps and diagrams so that I can run and understand the app quickly.",
+      "title": "Write the README, architecture and database diagrams",
+      "user_story": "As a grader or new teammate, I want setup steps and diagrams so I can run and understand the app quickly.",
       "acceptance_criteria": [
         "README has the live URL, local setup, test commands and deploy steps",
-        "docs/architecture.md includes an architecture diagram and a DB schema diagram",
-        "Contribution log lists each partner's PRs and reviews"
+        "docs/architecture.md has an architecture diagram and an ER diagram of the Prisma schema",
+        "Contribution log lists each partner's PRs and reviews",
+        "Demo video link added before Nov 13"
       ],
       "labels": ["docs", "priority:low"],
       "milestone": "Sprint 2",
