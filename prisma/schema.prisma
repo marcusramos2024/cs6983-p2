@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Building {
+  id        String     @id @default(cuid())
+  name      String
+  address   String
+  users     User[]
+  incidents Incident[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model User {
+  id           String          @id @default(cuid())
+  email        String          @unique
+  name         String?
+  password     String
+  role         String          // "tenant", "manager", "organizer"
+  unit         String?         // e.g. "4B"
+  buildingId   String
+  building     Building        @relation(fields: [buildingId], references: [id])
+  incidents    Incident[]
+  events       IncidentEvent[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model Incident {
+  id           String          @id @default(cuid())
+  title        String
+  category     String          // "pest", "heat", "leak", "appliance", "other"
+  description  String?
+  reportedAt   DateTime
+  reportedVia  String          // "text", "email", "portal", "phone", "in person"
+  status       String          @default("Open") // "Open", "Acknowledged", "Resolved"
+  tenantId     String
+  tenant       User            @relation(fields: [tenantId], references: [id])
+  buildingId   String
+  building     Building        @relation(fields: [buildingId], references: [id])
+  photos       Photo[]
+  events       IncidentEvent[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model Photo {
+  id         String   @id @default(cuid())
+  incidentId String
+  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  url        String
+  filename   String
+  size       Int
+  mimeType   String
+  createdAt  DateTime @default(now())
+}
+
+model IncidentEvent {
+  id         String   @id @default(cuid())
+  incidentId String
+  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  type       String   // "REPORTED", "PHOTOS_ADDED", "FOLLOW_UP", "ACKNOWLEDGED", "RESPONSE", "RESOLVED"
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id])
+  title      String
+  content    String?
+  createdAt  DateTime @default(now())
+}
