@@ -8,7 +8,7 @@ How the runs were done: every run used Antigravity IDE 2.6.0 on my Mac with the 
 
 My first "no rules" run is worth keeping because it failed in an interesting way.
 
-- Setup: branch `hw3/run-a-no-rules`, made from tag `hw3-baseline`, with AGENTS.md and CLAUDE.md deleted in commit `6d05b2f`. The feature was a placeholder "item creation form" because the real PRD didn't exist yet.
+- Setup: branch `hw3/run-a-no-rules`, made from tag `hw3-baseline`, with AGENTS.md and CLAUDE.md deleted in commit `6d05b2f`. The feature was a stand-in "item creation form" because the real PRD didn't exist yet.
 - What the agent did: before writing anything it read `before-after-comparison.md` (this file, which at the time described the planned conventions), read the issue template, and "checked recent commits in detail". The commit that deleted AGENTS.md has the whole file in its diff, so one `git show` gives it back.
 - Result: the "no rules" code followed AGENTS.md almost line for line. `lib/services/item-service.ts`, `lib/validation/item-schema.ts`, `components/items/`, the `{ error: { code, message } }` error shape, a red test commit before the feature commit, and `(#5)` on every commit message. 23 files, +1361 lines, 33 tests passing, 96.63% line coverage, typecheck clean.
 - Lesson: deleting the rules file on a branch doesn't hide it. Git history and any doc that describes the conventions leak them right back in. For a fair test the "without" workspace needs no history and no docs that restate the rules.
