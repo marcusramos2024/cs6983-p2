@@ -169,3 +169,4 @@ describe("lib/validation/incident-schema.ts", () => {
     expect(invalidType.success).toBe(false);
   });
 });
+

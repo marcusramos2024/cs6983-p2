@@ -82,3 +82,4 @@ describe("components/incidents/PhotoUploader", () => {
     expect(onPhotosChange).not.toHaveBeenCalled();
   });
 });
+

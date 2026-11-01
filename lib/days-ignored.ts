@@ -38,3 +38,4 @@ export function formatDaysIgnored(days: number, isAcknowledged = false): string 
   }
   return `${days} ${plural} ignored`;
 }
+

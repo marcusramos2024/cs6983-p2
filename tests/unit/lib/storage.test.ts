@@ -33,3 +33,4 @@ describe("lib/storage.ts", () => {
     expect(resultUrl).toMatch(/^\/uploads\/[0-9a-f-]+\.jpg$/);
   });
 });
+

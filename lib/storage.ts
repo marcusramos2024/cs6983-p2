@@ -26,3 +26,4 @@ export async function savePhoto(
 
   return `/uploads/${uniqueName}`;
 }
+

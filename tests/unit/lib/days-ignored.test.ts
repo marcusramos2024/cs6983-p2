@@ -58,3 +58,4 @@ describe("lib/days-ignored.ts", () => {
     expect(formatDaysIgnored(6, true)).toBe("Acknowledged after 6 days");
   });
 });
+

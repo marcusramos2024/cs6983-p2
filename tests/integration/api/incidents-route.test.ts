@@ -111,3 +111,4 @@ describe("POST /api/incidents", () => {
     expect(json.data.status).toBe("OPEN");
   });
 });
+
