@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Paper Trail wireframe: tenant timeline and manager queue</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  /* Low-fidelity wireframe. Colors follow the DESIGN.md tokens. */
+  :root { --ink:#1F2933; --paper:#FAFAF7; --card:#fff; --line:#E4E2DC; --muted:#6B7280;
+          --primary:#1D4ED8; --open:#B91C1C; --ack:#B45309; --resolved:#15803D; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.5 Inter, system-ui, sans-serif; }
+  .frame { max-width:960px; margin:32px auto; border:2px dashed var(--line); background:var(--card); }
+  .label { font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding:8px 16px; border-bottom:1px solid var(--line); }
+  nav { display:flex; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--line); }
+  nav b { font-weight:600; } nav span { color:var(--muted); }
+  main { padding:24px 16px; }
+  h1 { font-size:24px; margin:0 0 4px; } h2 { font-size:18px; margin:24px 0 8px; }
+  .mono { font-family:ui-monospace, Menlo, monospace; font-size:14px; }
+  .muted { color:var(--muted); }
+  .badge { display:inline-block; font-size:13px; padding:2px 8px; border-radius:4px; border:1px solid currentColor; margin-right:6px; }
+  .open { color:var(--open); } .ack { color:var(--ack); } .resolved { color:var(--resolved); }
+  .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .photos { display:flex; gap:8px; margin:12px 0; }
+  .photo { width:72px; height:72px; background:#eee; border:1px solid var(--line); border-radius:4px; display:grid; place-items:center; font-size:12px; color:var(--muted); }
+  ol.timeline { list-style:none; margin:0; padding:0 0 0 16px; border-left:2px solid var(--line); }
+  ol.timeline li { margin:0 0 16px; position:relative; }
+  ol.timeline li::before { content:""; position:absolute; left:-23px; top:6px; width:12px; height:12px; border-radius:50%; background:var(--card); border:2px solid var(--line); }
+  table { width:100%; border-collapse:collapse; }
+  th, td { text-align:left; padding:10px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { font-size:13px; color:var(--muted); font-weight:600; }
+  button { font:inherit; font-size:14px; padding:6px 10px; border-radius:4px; border:1px solid var(--line); background:var(--card); cursor:pointer; }
+  button.primary { background:var(--primary); color:#fff; border-color:var(--primary); }
+  .note { font-size:13px; color:var(--muted); padding:0 16px 16px; }
+</style>
+</head>
+<body>
+
+<!-- Screen 1: tenant incident timeline (/incidents/[id]) -->
+<section class="frame" aria-label="Tenant incident timeline">
+  <div class="label">Screen 1: Tenant, /incidents/[id]</div>
+  <nav><b>Paper Trail</b><span>Tenant, Unit 4B &middot; Sign out</span></nav>
+  <main>
+    <p class="muted"><a href="#">My incidents</a> / Leak under kitchen sink</p>
+    <h1>Leak under kitchen sink</h1>
+    <div class="row">
+      <span class="badge ack">Acknowledged</span>
+      <span class="badge ack">Acknowledged after 6 days</span>
+      <span class="muted">Leak &middot; reported by text</span>
+    </div>
+    <div class="photos" aria-label="Photos">
+      <div class="photo">photo 1</div><div class="photo">photo 2</div><div class="photo">photo 3</div>
+    </div>
+
+    <h2>Timeline</h2>
+    <ol class="timeline">
+      <li><div class="mono">Oct 20, 2026 8:02 PM</div><b>Reported</b> by text to the building manager. "Water pooling under the sink, cabinet floor is soft."</li>
+      <li><div class="mono">Oct 20, 2026 8:05 PM</div><b>Photos added</b> (3)</li>
+      <li><div class="mono">Oct 23, 2026 9:40 AM</div><b>Follow-up</b> from tenant. "Still leaking, put a bucket under it."</li>
+      <li><div class="mono">Oct 26, 2026 2:15 PM</div><b>Acknowledged</b> by Luis R. (manager)</li>
+      <li><div class="mono">Oct 26, 2026 2:16 PM</div><b>Response:</b> "Plumber scheduled for Oct 29 between 9 and 12."</li>
+    </ol>
+    <button>Add follow-up</button>
+  </main>
+  <p class="note">Days ignored counts from reported-at until the first acknowledgement. If never acknowledged it keeps counting and the badge turns red after 7 days.</p>
+</section>
+
+<!-- Screen 2: manager queue (/queue) -->
+<section class="frame" aria-label="Manager queue">
+  <div class="label">Screen 2: Property Manager, /queue</div>
+  <nav><b>Paper Trail</b><span>Manager, 4 buildings &middot; Sign out</span></nav>
+  <main>
+    <h1>Open issues</h1>
+    <p class="muted">Sorted by days ignored. 3 open, 1 acknowledged.</p>
+    <table>
+      <thead><tr><th>Days ignored</th><th>Incident</th><th>Unit</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge open">12 days</span></td><td><b>No heat in bedroom</b><br><span class="mono muted">Reported Oct 19, 2026 7:30 AM by email</span></td><td>2A, 120 Elm St</td><td><span class="badge open">Open</span></td><td class="row"><button class="primary">Acknowledge</button><button>Respond</button><button>Resolve</button></td></tr>
+        <tr><td><span class="badge ack">5 days</span></td><td><b>Mice in kitchen</b><br><span class="mono muted">Reported Oct 26, 2026 6:12 PM by portal</span></td><td>3C, 120 Elm St</td><td><span class="badge open">Open</span></td><td class="row"><button class="primary">Acknowledge</button><button>Respond</button><button>Resolve</button></td></tr>
+        <tr><td><span class="badge">1 day</span></td><td><b>Dishwasher won't drain</b><br><span class="mono muted">Reported Oct 30, 2026 8:45 PM in person</span></td><td>5F, 88 Oak Ave</td><td><span class="badge open">Open</span></td><td class="row"><button class="primary">Acknowledge</button><button>Respond</button><button>Resolve</button></td></tr>
+        <tr><td><span class="badge ack">6 days</span></td><td><b>Leak under kitchen sink</b><br><span class="mono muted">Reported Oct 20, 2026 8:02 PM by text</span></td><td>4B, 120 Elm St</td><td><span class="badge ack">Acknowledged</span></td><td class="row"><button>Respond</button><button>Resolve</button></td></tr>
+      </tbody>
+    </table>
+  </main>
+  <p class="note">Respond and Resolve open a small dialog with a required text field. Every action adds a timestamped event to the incident.</p>
+</section>
+
+</body>
+</html>
