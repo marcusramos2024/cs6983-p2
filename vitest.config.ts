@@ -10,8 +10,11 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     coverage: {
       provider: "v8",
+      include: ["lib/**"],
       reporter: ["text", "json", "html"],
-      lines: 80,
+      thresholds: {
+        lines: 80,
+      },
     },
   },
   resolve: {

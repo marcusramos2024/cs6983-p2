@@ -7,6 +7,7 @@ vi.mock("@/lib/db", () => {
     prisma: {
       incident: {
         create: vi.fn(),
+        findUnique: vi.fn(),
       },
     },
   };
@@ -116,5 +117,32 @@ describe("lib/services/incident-service.ts", () => {
     await expect(createIncident(input, userWithoutBuilding)).rejects.toThrow(
       "Tenant must be associated with a building"
     );
+  });
+
+  it("retrieves an incident by id with its events and photos", async () => {
+    const mockIncident = {
+      id: "inc-123",
+      title: "Leak under sink",
+      events: [{ id: "e1", type: "REPORTED" }],
+      photos: [{ id: "p1", url: "/uploads/p1.jpg" }],
+    };
+
+    (prisma.incident.findUnique as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(
+      mockIncident
+    );
+
+    const { getIncidentById } = await import("@/lib/services/incident-service");
+    const result = await getIncidentById("inc-123");
+
+    expect(prisma.incident.findUnique).toHaveBeenCalledWith({
+      where: { id: "inc-123" },
+      include: {
+        events: {
+          orderBy: { createdAt: "asc" },
+        },
+        photos: true,
+      },
+    });
+    expect(result).toEqual(mockIncident);
   });
 });
