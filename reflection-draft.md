@@ -1,39 +1,46 @@
 # HW3 Reflection: Context Engineering, Rules and Process
 
-DRAFT for Marcus to edit. The starter prose describes the setup only. Every sentence about results is a [PLACEHOLDER] until the before/after runs are done. Target length: 1-2 pages.
+DRAFT. Written from the real runs and numbers in `before-after-comparison.md`, but it still needs to be rewritten in my own words before I submit it. The runs were typed and approved by Claude through computer use on my Mac, not by me, and the reflection should say that honestly.
 
-Marcus Ramos | CS 6983 AI Coding, Fall 2026 | P2: [PLACEHOLDER: project name]
+Marcus Ramos | CS 6983 AI Coding, Fall 2026 | P2: Paper Trail
 
 ## 1. From PRD and mockups to implementation
 
-For Project 1 I built Use It Up entirely inside one Claude Web chat. That worked because the whole context lived in the conversation: I pasted in the problem from my interviews, asked for a plan and data model first, and then built one feature at a time. P2 is different. The work is split across a partner, an IDE, many short agent sessions and a real repo, so the context can't live in one chat anymore. The rules file is how I move that context out of my head and the PRD and into something the agent reads every time.
+For Project 1 I built Use It Up inside one Claude Web chat, so all the context lived in the conversation. P2 is split across a partner, an IDE, lots of short agent sessions and a real repo, so the context has to live in files the agent reads every time. AGENTS.md is that file. It points to the PRD, DESIGN.md and the wireframe instead of copying them, describes each screen and component in words because the agent can't always look at an image, and spells out the user flows.
 
-The AGENTS.md I wrote does three things for that. It points to the PRD and mockups as the source of truth instead of pasting them in, so there is only one copy to keep current. It describes each screen and key component in words, because the agent can't always open an image, and it lists every list view's loading, empty and error states so they don't get skipped. And it writes out the user flows step by step, which doubles as the outline for our Playwright tests.
-
-[PLACEHOLDER: 2-3 sentences on what actually happened. For example, whether run B matched the mockup layout and run A didn't, with one concrete detail from comparison section 2.3.]
+The test on issue #5 ("Log an incident with photos") showed how much that matters. Both runs had the PRD, DESIGN.md and the wireframe in the folder. Without AGENTS.md the agent still built a working feature with passing tests, but it put everything under `src/`, used SQLite even though the README says Postgres, wrote its own validation instead of Zod, hard-coded six hex colors, and returned errors in three different shapes. With AGENTS.md it matched the folder layout, used Zod and Postgres, used `{ error: { code, message } }` everywhere, and used the theme tokens with no raw hex. The PRD told both runs what to build. The rules file is what made run B build it the way our project does things.
 
 ## 2. How the GitHub Scrum setup organizes AI-assisted work
 
-The board and issues give the agent a scope. Each issue has an action-oriented title and acceptance criteria written as a checklist, so I can hand the agent one issue instead of a vague feature request, and judge the output against a list instead of a feeling. The branch and commit format (`feature/12-add-item-form`, `feat(items): ... (#12)`) means every AI-generated change traces back to an issue, and `Closes #N` in the PR moves the card when we merge.
+The board and the 13 issues gave the agent a clear scope. Issue #5 has six acceptance criteria as a checklist, so I could grade both runs against the same list instead of a gut feeling. Both runs covered the 401, 403, 400 and success cases from that list.
 
-It also keeps the agent from drifting. The rules file tells it to work only on issues that exist and to suggest a new issue rather than fixing unrelated things, which matters more with AI than without it, since the agent will happily refactor files nobody asked about.
+The templates had a bigger effect than I expected. Both runs committed failing tests before the feature, even run A, which had no rules file. The only place that told it to do that was the issue and PR templates ("failing test committed first"). So the Scrum setup itself works as context, not just as tracking.
 
-[PLACEHOLDER: one or two sentences from actual experience. For example, whether the issue checklist made the comparison easier to grade, or whether any issue turned out too big for one agent session.]
+Run B also followed the branch and commit conventions: `feature/5-log-incident` and `test(incidents): ... (#5)`, `feat(incidents): ... (#5)`. Run A stayed on `main` and wrote `test: ... (issue #5)`. That's the difference between a commit history I can link to the board and one I can't.
 
 ## 3. What worked, what didn't, and what changed
 
-What worked: [PLACEHOLDER: only items backed by comparison table 2.1. Example shape: "With rules, the agent followed the folder structure in x of y files versus z without."]
+What worked:
 
-What didn't: [PLACEHOLDER: where run B still missed. Be specific: a naming rule it ignored, a test it skipped, a mockup detail it got wrong.]
+- Structure and conventions. Run B matched AGENTS.md on folders, naming, error shape, validation library, database and commit format. Run A missed almost all of those.
+- Testing. Run B wrote 40 tests across 8 files (809 lines of tests) and hit 89.6% line coverage on `lib/`. Run A wrote 31 tests across 5 files and hit 60.4%. Run B also froze the clock for the days-ignored tests, which AGENTS.md asks for.
 
-What I changed in the rules file: [PLACEHOLDER: summarize the v2 rows from the change log in section 3.1 of the comparison, and why each one was added.]
+What didn't:
 
-[PLACEHOLDER, optional: result of the confirmation run with v2, if done.]
+- Run B still left the UI badges (`StatusBadge`, `DaysIgnoredBadge`) at 0% coverage. AGENTS.md never said components need tests.
+- The agents didn't stay in their folder. My first "no rules" run (A0) found the deleted AGENTS.md through git history and copied its conventions almost exactly, which made it useless as a baseline. In the clean runs, both agents listed the sibling folders, and run B read run A's git log before I could stop it. `ls` and some read-only git commands run without asking in Antigravity, so I couldn't block all of it.
+
+What I changed in AGENTS.md (v2):
+
+- A rule to stay inside the repo folder and ask instead of looking around `~/Desktop`.
+- A rule that every component in `components/ui` gets a render test for each variant.
+
+I haven't re-run with v2 yet. If I do, the workspaces need to be somewhere the agent can't see each other.
 
 ## 4. What I'd add or change for Sprint 2
 
-- [PLACEHOLDER: a rule driven by a specific Sprint 1 miss]
-- Path-scoped rules for tests, if the general testing section turns out too generic for API route tests. [PLACEHOLDER: keep or delete based on results]
-- Document the real-time update pattern in the architecture section once we pick it, since that is a Sprint 2 feature and the agent will otherwise invent its own approach.
-- Add a CLAUDE.md that imports AGENTS.md before we move to Claude Code in Week 9, so the same rules carry over.
-- Revisit AGENTS.md at the Sprint 1 retro with [PLACEHOLDER: partner name] and keep it under about 200 lines.
+- Put each experiment or worktree outside the main project folder, and keep Antigravity's terminal setting on "Require Review" so read-only commands outside the repo still need approval.
+- Add a short testing note for the Sprint 2 features: the SSE stream in #8 and the PDF export in #10 both need examples of how to test them, or the agent will skip them like it skipped the badges.
+- Write the real-time pattern into section 1.3 once we pick it.
+- Keep CLAUDE.md as the one-line `@AGENTS.md` import so the same rules carry over to Claude Code in Week 9.
+- Go over AGENTS.md at the Sprint 1 retro with [PLACEHOLDER: partner name] and keep it under about 200 lines.
