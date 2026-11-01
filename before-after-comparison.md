@@ -1,187 +1,82 @@
-# HW3 Part 3: Before/after rules file comparison
+# HW3 Part 3: Before/after rules file test
 
-Project: [PLACEHOLDER: P2 name] | Repo: [PLACEHOLDER: repo URL] | Author: Marcus Ramos
-Status: methodology complete; results not yet run. Every result cell below must come from the actual runs.
+Project: Paper Trail | Repo: https://github.com/marcusramos2024/cs6983-p2 | Author: Marcus Ramos
 
-## 1. Methodology
+How the runs were done: every run used Antigravity IDE 2.6.0 on my Mac with the Gemini 3.8 Flash (High) model. The prompts were typed into Antigravity and the approval prompts were clicked by Claude (Anthropic) through computer use, not by me. I set the rules for what it could approve (below). The measuring was also done by Claude, by running the tests and reading the diffs. I checked the write-up.
 
-### 1.1 Feature under test
+## 1. What went wrong the first time (run A0)
 
-- Issue: #5 "[PLACEHOLDER] Add [PLACEHOLDER: core entity] creation form" (Sprint 1)
-- Why this issue: it touches the UI, validation, the API layer and tests at once, so differences in all four dimensions can show up.
-- IMPORTANT: the P2 PRD and mockups did not exist when this test was set up, so the feature below is a minimal stand-in definition, not real P2 content. If the real PRD is ready before the runs, replace it with the real story and keep both prompts identical apart from the rules pointer.
-- Stand-in definition: the core entity is an `Item` with `name` (required, 1 to 80 characters), `quantity` (whole number, at least 1, default 1) and `notes` (optional, up to 500 characters). The form lives on `/items/new`, posts to `POST /api/items`, and on success returns to `/items` with the new item at the top. No database yet: an in-memory store behind the service layer is acceptable for this test.
-- Acceptance criteria (both runs are judged against this list):
-  1. Submitting a valid item creates it and shows it at the top of the list.
-  2. Empty name, name over 80 characters, or quantity below 1 shows an inline error under the field and nothing is saved.
-  3. The API rejects the same invalid input with a 400 and an error message, even if the client check is bypassed.
-  4. The submit button is disabled while the request is in flight.
-  5. Every input has a visible label.
-  6. Tests exist for the validation rules and the API route, and they pass.
+My first "no rules" run is worth keeping because it failed in an interesting way.
 
-### 1.2 Controlled variables
+- Setup: branch `hw3/run-a-no-rules`, made from tag `hw3-baseline`, with AGENTS.md and CLAUDE.md deleted in commit `6d05b2f`. The feature was a placeholder "item creation form" because the real PRD didn't exist yet.
+- What the agent did: before writing anything it read `before-after-comparison.md` (this file, which at the time described the planned conventions), read the issue template, and "checked recent commits in detail". The commit that deleted AGENTS.md has the whole file in its diff, so one `git show` gives it back.
+- Result: the "no rules" code followed AGENTS.md almost line for line. `lib/services/item-service.ts`, `lib/validation/item-schema.ts`, `components/items/`, the `{ error: { code, message } }` error shape, a red test commit before the feature commit, and `(#5)` on every commit message. 23 files, +1361 lines, 33 tests passing, 96.63% line coverage, typecheck clean.
+- Lesson: deleting the rules file on a branch doesn't hide it. Git history and any doc that describes the conventions leak them right back in. For a fair test the "without" workspace needs no history and no docs that restate the rules.
 
-Both runs use the same:
+Run A0 stays on its branch as evidence. It isn't used in the tables below.
 
-| Variable | Value |
+## 2. Method for the clean runs
+
+### 2.1 Feature under test
+
+Issue #5, "Log an incident with photos" (PRD US2). Acceptance criteria, copied from the issue so both runs are judged the same way:
+
+1. Form at `/incidents/new` with category, title (required, max 120), description (max 2000), reported-at (required, not in the future) and reported-via.
+2. Up to 5 photos, JPEG/PNG/HEIC, 10 MB each, with previews and remove buttons.
+3. Invalid input shows an error under the field and nothing is saved.
+4. `POST /api/incidents` rejects the same invalid input with 400, even if the client check is skipped.
+5. On success the tenant lands on `/incidents/[id]` with a Reported event and 0 days ignored.
+6. Only tenants can create incidents (403 for other roles, 401 signed out).
+
+### 2.2 Workspaces
+
+Two fresh folders on the Desktop, each a new git repo with one commit, so there's no history to dig through:
+
+| | `hw3-clean-a` (run A) | `hw3-clean-b` (run B) |
+|---|---|---|
+| README, DESIGN.md, docs/PRD.md, docs/design/wireframe.html, .github templates | yes | yes |
+| AGENTS.md, CLAUDE.md | no | yes |
+| HW3 write-ups (this file, reflection, issues.json) | no | no |
+| Git history | 1 commit | 1 commit |
+
+The only leftover hint in run A is one line in the PR template ("Self-reviewed the diff with AI against AGENTS.md"). I kept the templates identical in both on purpose.
+
+Neither workspace has any app code yet, so both runs had to scaffold the app as well as build the feature. No `~/.gemini/GEMINI.md` exists, so there were no global rules.
+
+### 2.3 Same in both runs
+
+| | |
 |---|---|
-| Tool | [PLACEHOLDER: Antigravity version. If the runs were done in a different tool (for example Claude Code or Claude in Cowork), state that here plainly.] |
-| Model | [PLACEHOLDER: model name shown in the tool] |
-| Agent mode | [PLACEHOLDER: e.g. Agent mode, Planning on] |
-| Starting commit | `hw3-baseline` tag ([PLACEHOLDER: short SHA]) |
-| Feature description | Identical sentence in both prompts (see 1.4) |
-| Follow-up policy | Up to 2 follow-up prompts, only to report errors verbatim (e.g. pasted test output). No design hints. |
-| Conversation | Brand-new chat for each run, no prior context |
+| Tool and model | Antigravity IDE 2.6.0, Gemini 3.8 Flash (High) |
+| Node | 22.23.4 (installed in `~/.local/node` before either run) |
+| Chat | brand-new conversation |
+| Approvals | project-local commands allowed (which, ls, npm, npx, git, test runs). Nothing system-wide (no brew, no sudo, no global installs). Same answer to the same kind of prompt in both runs. |
+| Follow-ups | none, unless the agent stopped and asked a question |
 
-The only intended difference: run A has no rules file and no pointers to the PRD or mockups; run B has AGENTS.md in place and the prompt points to it.
+### 2.4 Exact prompts
 
-### 1.3 Branch setup
-
+Run A:
 ```
-git checkout main && git pull
-git tag hw3-baseline            # the shared starting point
-git push origin hw3-baseline
-
-# Run A: without rules
-git checkout -b hw3/run-a-no-rules hw3-baseline
-git rm AGENTS.md CLAUDE.md 2>/dev/null; git rm -r .agents 2>/dev/null
-git commit -m "chore: remove rules files for HW3 baseline run (#5)"
-
-# Run B: with rules
-git checkout -b hw3/run-b-with-rules hw3-baseline
+Implement this feature: let a tenant log an incident with photos. Tenants pick a category, give it a title and description, say when and how they reported it to the landlord, and attach up to 5 photos. Include tests.
 ```
 
-How the rules file is disabled for run A:
-- AGENTS.md (and CLAUDE.md, `.agents/`, if present) are deleted on the run A branch only, as above.
-- Check that no global rules apply: in Antigravity, open the rules/customizations settings and confirm no global rules file is active ([PLACEHOLDER: note what you found]). Temporarily rename it if one exists, and restore it before run B.
-- Close and reopen the workspace in the IDE after switching branches so the tool does not keep a cached copy of the rules.
-- Leave `docs/PRD.md` and `docs/design/` in place on both branches. Run A is not told about them; note in the results whether the agent found them anyway.
-
-Both experiment branches are pushed and kept (not merged) as evidence. The winning implementation is then redone or cherry-picked on the real branch `feature/5-add-item-creation-form` and goes through a normal PR.
-
-### 1.4 Exact prompts
-
-Run A (without rules), brief description only. Paste exactly:
+Run B:
 ```
-Implement this feature: add an item creation form. Users should be able to add a new item with a name, a quantity and optional notes, and see it in the item list. Include tests.
+Implement GitHub issue #5: let a tenant log an incident with photos. Tenants pick a category, give it a title and description, say when and how they reported it to the landlord, and attach up to 5 photos. Include tests.
+
+Follow AGENTS.md. Before writing code, read US2 in docs/PRD.md, DESIGN.md and docs/design/wireframe.html, then give me a short plan. Work test-first and use the commit and naming conventions in AGENTS.md.
 ```
 
-Run B (with rules). Paste exactly:
-```
-Implement GitHub issue #5: add an item creation form. Users should be able to add a new item with a name, a quantity and optional notes, and see it in the item list. Include tests.
+### 2.5 How it was measured
 
-Follow AGENTS.md. Before writing code, read the acceptance criteria for issue #5 in before-after-comparison.md section 1.1, docs/PRD.md and DESIGN.md, then give me a short plan. Work test-first and use the branch, commit and naming conventions in AGENTS.md.
-```
-Note: run B points at section 1.1 of this file because docs/PRD.md is still a stub. That gives run B the acceptance criteria and run A does not, which is the intended difference (rules and project context versus a brief description).
+Each result was copied out of the workspace (without node_modules) and checked fresh with `npm ci`, `npx vitest run --coverage` and `npx tsc --noEmit`, plus `git log` and `git diff --stat` against the baseline commit. Naming and folders were checked against AGENTS.md sections 1.3 and 1.4 by hand.
 
-Follow-up prompts actually used (record verbatim, or "none"):
-- Run A: [PLACEHOLDER]
-- Run B: [PLACEHOLDER]
+## 3. Results
 
-### 1.5 What gets measured
+[RESULTS PENDING: filled in from the clean runs]
 
-Run these on each branch after the agent finishes, before any manual fixes:
+## 4. What changed in AGENTS.md
 
-```
-git diff --stat hw3-baseline...HEAD            # files and lines changed
-git log --oneline hw3-baseline..HEAD           # commit messages and order (test-first?)
-npm run lint 2>&1 | tail -n 5                  # lint errors and warnings
-npm run typecheck 2>&1 | tail -n 5             # TypeScript errors
-npm test -- --coverage                         # tests passing, coverage on changed files
-npm run test:e2e                               # E2E and axe results, if the run produced E2E tests
-```
-
-Also record wall-clock time from first prompt to "done", and the number of follow-up prompts.
-
-## 2. Results
-
-### 2.1 Measurable summary
-
-| Metric | Without rules (A) | With rules (B) | Notes |
-|---|---|---|---|
-| Follow-up prompts needed | | | |
-| Time to working feature (min) | | | |
-| Files changed / lines added | | | |
-| Files created outside the documented folder structure | | | |
-| Lint errors / warnings | | | |
-| TypeScript errors | | | |
-| Tests written (unit / integration / E2E) | | | |
-| Tests passing | | | |
-| Coverage on changed files (%) | | | |
-| Acceptance criteria met (of [PLACEHOLDER: total]) | | | |
-| Naming convention violations (count) | | | |
-| New dependencies added | | | |
-| Failing test committed before implementation (yes/no) | | | |
-| Commit messages follow the format (x of y) | | | |
-| axe accessibility violations (serious/critical) | | | |
-
-### 2.2 Code quality and consistency with project patterns
-
-| Check | Without rules (A) | With rules (B) |
+| Version | Change | Why |
 |---|---|---|
-| Layering (API route, service, db) respected | | |
-| Zod validation on the server | | |
-| Error response shape `{ error: { code, message } }` | | |
-| Server vs client components used correctly | | |
-| Auth and ownership checks on the API route | | |
-
-Snippet A (file: [PLACEHOLDER]):
-```ts
-[PLACEHOLDER: paste a short representative excerpt]
-```
-Snippet B (file: [PLACEHOLDER]):
-```ts
-[PLACEHOLDER: paste the matching excerpt]
-```
-What differs: [PLACEHOLDER]
-
-### 2.3 Understanding of design and mockup intent
-
-| Check | Without rules (A) | With rules (B) |
-|---|---|---|
-| Layout and component order match the mockup | | |
-| Uses DESIGN.md / Tailwind tokens (no hard-coded colors) | | |
-| Copy and labels match the mockup | | |
-| Loading, empty and error states present | | |
-| Mobile width (375px) works | | |
-
-Screenshots: [PLACEHOLDER: screenshots/run-a.png] and [PLACEHOLDER: screenshots/run-b.png], next to the mockup [PLACEHOLDER: docs/design/file].
-What differs: [PLACEHOLDER]
-
-### 2.4 Adherence to naming and architecture
-
-| Check | Without rules (A) | With rules (B) |
-|---|---|---|
-| File names follow conventions | | |
-| Files placed in the documented folders | | |
-| Branch and commit format followed | | |
-| Issue referenced in commits / TODOs | | |
-
-Examples of violations: [PLACEHOLDER: list specific file names or lines]
-
-### 2.5 Quality of tests
-
-| Check | Without rules (A) | With rules (B) |
-|---|---|---|
-| Each acceptance criterion has a test | | |
-| Error paths tested (empty, invalid, unauthenticated, forbidden) | | |
-| Tests use factories instead of hard-coded data | | |
-| Tests actually fail when the feature is removed | | |
-
-What differs: [PLACEHOLDER]
-
-## 3. Takeaways and changes to the rules file
-
-What the rules file clearly improved: [PLACEHOLDER: only what the tables above show]
-
-Where run B still missed: [PLACEHOLDER]
-
-### 3.1 Rules file change log
-
-| Version | Change | Reason (link to the result above) |
-|---|---|---|
-| v1 | Initial AGENTS.md | n/a |
-| v2 | [PLACEHOLDER] | [PLACEHOLDER] |
-| v2 | [PLACEHOLDER] | [PLACEHOLDER] |
-
-Optional confirmation run: re-run B with AGENTS.md v2 on `hw3/run-b-with-rules-v2` and add a column to table 2.1.
+| v1 | Paper Trail rules file | First real version |

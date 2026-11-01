@@ -1,192 +1,175 @@
-# AGENTS.md: [PLACEHOLDER: P2 project name]
+# AGENTS.md: Paper Trail
 
 <!--
   Shared rules file for every AI coding tool on this repo (Antigravity, Copilot, Cursor, Claude Code).
-  One copy only, at the repo root. Do not duplicate it into .agents/, .cursor/ or .claude/.
-  Claude Code: add a CLAUDE.md that contains only the line `@AGENTS.md` (a CLAUDE.md without it disables this file).
-  Keep this file under ~200 lines. Link to docs/ instead of pasting long content here.
-  Change this file only through a PR, and revisit it at every sprint retro.
-  Lines marked [PLACEHOLDER: ...] must be replaced with P2 specifics before the HW3 test runs.
+  One copy only, at the repo root. Don't copy it into .agents/, .cursor/ or .claude/.
+  CLAUDE.md contains only `@AGENTS.md` so Claude Code reads this file too.
+  Keep it under ~200 lines and link to docs/ instead of pasting.
+  Change it through a PR and look at it again at every sprint retro.
 -->
 
 ## 1. Project context
 
-<!-- One paragraph so the agent knows what it is building and for whom. Pull it from docs/PRD.md. -->
-[PLACEHOLDER: 2-3 sentences. What the app does, who the primary user is, and the core problem it solves.]
+<!-- One paragraph so the agent knows what it's building and for whom. Source: docs/PRD.md. -->
+Paper Trail is a renter's evidence log. Tenants log incidents (pest, heat, leak, appliance, other) with photos, when they reported it and how, and a "days ignored" clock starts. Property managers work a queue of open incidents and acknowledge, respond and resolve, with every action timestamped. Building organizers see all incidents in their building and export a building-wide timeline PDF. There's also a public, anonymized building report card API.
 
-- Team: Marcus Ramos and [PLACEHOLDER: partner name]. Course: CS 6983 AI Coding, Fall 2026 (Project 2).
-- PRD: [docs/PRD.md](docs/PRD.md). Design system: [DESIGN.md](DESIGN.md). Mockups: [docs/design/](docs/design/).
-- Live URL: [PLACEHOLDER: production URL once deployed]
+- Team: Marcus Ramos and [PLACEHOLDER: partner name]. CS 6983 Project 2, due Nov 13, 2026.
+- PRD: [docs/PRD.md](docs/PRD.md). Design: [DESIGN.md](DESIGN.md). Wireframe: [docs/design/wireframe.html](docs/design/wireframe.html).
 
-### 1.1 Tech stack and versions
+### 1.1 Stack and versions
 
-<!-- Defaults below come from the P2 stack list. Replace any row that differs, and pin real versions from package.json. -->
-| Layer | Choice | Version |
-|---|---|---|
-| Language | TypeScript (strict mode) | [PLACEHOLDER: e.g. 5.x] |
-| Runtime | Node.js | [PLACEHOLDER: e.g. 22 LTS] |
-| Framework | Next.js, App Router, with API route handlers | [PLACEHOLDER: e.g. 15.x] |
-| UI | React + Tailwind CSS (theme generated from DESIGN.md) | [PLACEHOLDER] |
-| Database | PostgreSQL via Prisma ORM, hosted on [PLACEHOLDER: Supabase / Neon] | [PLACEHOLDER] |
-| Auth | [PLACEHOLDER: Auth.js with GitHub/Google OAuth, or JWT in httpOnly cookie] | [PLACEHOLDER] |
-| Validation | Zod | [PLACEHOLDER] |
-| Unit / integration tests | Vitest + React Testing Library | [PLACEHOLDER] |
-| E2E tests | Playwright | [PLACEHOLDER] |
-| CI/CD | GitHub Actions; Vercel production + PR preview deploys | n/a |
+<!-- Pin majors. If package.json disagrees with this table, fix one of them in the same PR. -->
+| Layer | Choice |
+|---|---|
+| Runtime | Node.js 22 LTS |
+| Framework | Next.js 15, App Router, route handlers for the API |
+| Language | TypeScript 5, `strict: true` |
+| UI | React 19 + Tailwind CSS 3.4, theme generated from DESIGN.md tokens |
+| Database | Postgres 16 via Prisma 6 (Supabase in prod, local Docker or Supabase branch in dev) |
+| Auth | NextAuth v4, credentials provider, JWT sessions, role stored in the token |
+| Validation | Zod 3, shared by forms and API |
+| Photos | `lib/storage.ts`: local `/tmp/uploads` in dev and tests, Vercel Blob in prod |
+| Real-time | Server-sent events from `/api/events`, 10 s polling fallback |
+| Tests | Vitest 2 + React Testing Library, Playwright for E2E |
+| Deploy | Vercel, preview deploy on every PR |
 
 ### 1.2 Commands
 
-<!-- Exact commands. The agent should run these, not guess. -->
 - Install: `npm ci`
-- Dev server: `npm run dev`
-- Lint and format: `npm run lint` and `npm run format`
-- Unit and integration tests: `npm test` (watch: `npm run test:watch`)
-- E2E tests: `npm run test:e2e`
-- Type check: `npm run typecheck`
-- DB migration: `npx prisma migrate dev --name <change>`; seed: `npm run db:seed`
-- Before calling any task done: `npm run lint && npm run typecheck && npm test` must pass.
+- Dev: `npm run dev`
+- Lint / format: `npm run lint`, `npm run format`
+- Types: `npm run typecheck`
+- Unit and integration tests: `npm test` (watch: `npm run test:watch`, coverage: `npm run test:coverage`)
+- E2E: `npm run test:e2e`
+- DB: `npx prisma migrate dev --name <change>`, seed with `npm run db:seed`
+- Before saying a task is done: `npm run lint && npm run typecheck && npm test` must pass.
 
-### 1.3 Architecture and folder structure
+### 1.3 Architecture and folders
 
-<!-- Keep in sync with the real tree. If you add a top-level folder, add it here in the same PR. -->
+<!-- Keep in sync with the real tree. New top-level folder means updating this in the same PR. -->
 ```
-app/                  Next.js routes (pages, layouts). Thin: fetch data, render components.
-  api/                Route handlers. Validate input with Zod, call lib/services, return JSON.
-components/           Reusable UI. components/ui/ = primitives, components/<feature>/ = feature UI.
+app/
+  (auth)/login, (auth)/signup     Auth pages
+  incidents/, incidents/new, incidents/[id]   Tenant screens
+  queue/                          Manager screen
+  building/                       Organizer screen
+  api/
+    auth/[...nextauth]/route.ts
+    incidents/route.ts, incidents/[id]/route.ts, incidents/[id]/events/route.ts
+    incidents/[id]/photos/route.ts
+    events/route.ts               SSE stream
+    buildings/[id]/score/route.ts Public report card
+components/
+  ui/                             Generic pieces (Button, Badge, Dialog, EmptyState)
+  incidents/, queue/, building/   Feature components (IncidentForm, IncidentTimeline, QueueTable...)
 lib/
-  services/           Business logic. Pure where possible. No React, no Request/Response objects.
-  db.ts               Single Prisma client instance.
-  auth.ts             Auth config and getCurrentUser() helper.
-  validation/         Zod schemas shared by API and forms.
-prisma/               schema.prisma, migrations/, seed.ts
-tests/
-  unit/  integration/ Vitest
-  e2e/                Playwright
-docs/                 PRD.md, design/, api/openapi.yaml, sprints/, research/
+  services/                       Business logic: incident-service.ts, event-service.ts, score-service.ts
+  validation/                     Zod schemas: incident-schema.ts, event-schema.ts
+  auth.ts                         NextAuth config, getSessionUser(), requireRole()
+  db.ts                           Single Prisma client
+  storage.ts                      Photo storage
+  days-ignored.ts                 The one place days-ignored is calculated
+prisma/                           schema.prisma, migrations/, seed.ts
+tests/unit/, tests/integration/, tests/e2e/
+docs/                             PRD.md, design/, api/openapi.yaml, hw3/
 ```
-Key patterns:
-- Layering is one-directional: `app` uses `components` and `lib/services`; `lib/services` uses `lib/db`. Never import Prisma inside a component.
-- Server Components by default. Add `"use client"` only for state, effects or event handlers.
-- Every API route: authenticate, validate with Zod, call a service, return `{ data }` or `{ error: { code, message } }` with the right status code.
-- [PLACEHOLDER: any project-specific pattern, e.g. real-time updates via polling/SSE/websockets, which P2 requires (real-time or complex state)]
+Patterns:
+- Pages and components never import Prisma. Route handlers call `lib/services`, services call `lib/db`.
+- Server Components by default. `"use client"` only for forms, dialogs and the live-update hooks.
+- Every route handler: `requireRole()`, Zod parse, call a service, return `{ data }` or `{ error: { code, message } }` with the right status (400, 401, 403, 404).
+- Events are append-only. Never update or delete an `IncidentEvent`; corrections are new events.
+- Data model (Prisma): `User` (role: TENANT | MANAGER | ORGANIZER, buildingId, unit), `Building`, `Incident` (category, title, description, reportedAt, reportedVia, status: OPEN | ACKNOWLEDGED | RESOLVED, tenantId, buildingId), `IncidentEvent` (type: REPORTED | PHOTO_ADDED | FOLLOW_UP | ACKNOWLEDGED | RESPONSE | RESOLVED, body, actorId, createdAt), `Photo` (incidentId, url, takenAt).
 
-### 1.4 Naming conventions and coding standards
+### 1.4 Naming and coding standards
 
-- Files: components `PascalCase.tsx`; everything else `kebab-case.ts`. Tests mirror the source name: `item-service.test.ts`.
-- Code: `camelCase` variables and functions, `PascalCase` types and components, `SCREAMING_SNAKE_CASE` constants.
-- Database: Prisma models singular `PascalCase` (`Item`), fields `camelCase`, tables mapped to `snake_case` plural.
-- API paths: plural nouns, kebab-case (`/api/[PLACEHOLDER: resources]`). REST verbs, no verbs in paths.
-- Booleans start with `is`, `has` or `can`. Event handlers start with `handle`; props that receive them start with `on`.
-- No `any`. No default exports except Next.js pages/layouts. Functions over classes. Keep functions under ~40 lines.
-- Comments explain why, not what. Every exported service function gets a one-line JSDoc.
+- Files: components `PascalCase.tsx`, everything else `kebab-case.ts`. Tests mirror the file: `incident-service.test.ts`.
+- `camelCase` for variables and functions, `PascalCase` for types and components, `SCREAMING_SNAKE_CASE` for constants and Prisma enums.
+- API paths are plural nouns: `/api/incidents`, `/api/incidents/:id/events`. No verbs in paths.
+- Booleans start with `is`, `has` or `can`. Handlers are `handleX`, props that take them are `onX`.
+- No `any`. Named exports except Next.js pages and layouts. Functions under ~40 lines.
+- Comments say why, not what. One-line JSDoc on exported service functions.
+- Dates are stored in UTC and shown in the user's local time with the mono timestamp format from DESIGN.md.
 
-### 1.5 Testing strategy
+### 1.5 Testing
 
-<!-- P2 requires TDD: the failing test is committed before the code. -->
-- TDD is required. For each issue: commit the failing test first (`test: ... (red)`), then the code that passes it, then refactor.
-- Each acceptance criterion in the issue maps to at least one test. Name the test after the criterion.
-- Unit: every function in `lib/services` and `lib/validation`. Integration: every API route against a test database (never production). E2E: one Playwright test per user flow in section 2.3.
-- Always test error paths: empty input, invalid input, unauthenticated, forbidden (another user's data), not found.
-- Coverage goal: 80% lines on `lib/`, [PLACEHOLDER: adjust] overall. CI fails below the threshold.
-- Use factories in `tests/factories/` for test data. Do not hard-code IDs. Mock only external services, not our own code.
+- Test first. For each issue, commit the failing test (`test(scope): ... (#N)`), then the code, then refactor.
+- Each acceptance criterion in the issue gets at least one test, named after the criterion.
+- Unit tests for everything in `lib/services`, `lib/validation` and `lib/days-ignored.ts`. Integration tests for every route handler with a mocked session. One Playwright spec per user flow in section 2.3.
+- Always test: empty input, invalid input, signed out (401), wrong role (403), someone else's incident (404).
+- Coverage: 80% lines on `lib/`. CI fails below that.
+- Use factories in `tests/factories/`. Freeze time with `vi.useFakeTimers()` for anything involving days ignored. Mock only external services (Blob storage, email).
 
 ## 2. PRD and design references
 
-### 2.1 Where the source of truth lives
+### 2.1 Source of truth
 
-- Requirements: [docs/PRD.md](docs/PRD.md) [PLACEHOLDER: or link to Google Doc]. If code and PRD disagree, the PRD wins; ask before diverging.
-- Visual design: `DESIGN.md` (tokens: colors, type, spacing). UI work follows DESIGN.md. Use Tailwind theme tokens; never hard-code hex values or pixel sizes.
-- Mockups: `docs/design/[PLACEHOLDER: filename(s)]`. Prototype link: [PLACEHOLDER: Claude artifact or Figma URL].
-- When implementing a screen, open the matching mockup first and match its layout, copy and component order.
+- Requirements live in `docs/PRD.md`. If the code and the PRD disagree, the PRD wins. Ask before changing behavior.
+- UI follows `DESIGN.md`. Use the Tailwind theme tokens, never raw hex values.
+- Before building a screen, open `docs/design/wireframe.html` and match its layout, labels and order.
 
-### 2.2 Mockup description and key UI components
+### 2.2 What the mockups show
 
-<!-- Describe what the mockup shows in words. The agent cannot always open images, so this text is what it relies on. -->
-[PLACEHOLDER: one paragraph per screen. Example shape: "Dashboard: top nav with app name and avatar menu; left column list of X sorted by Y; right panel with detail view; primary button 'Add X' top right."]
+The wireframe has two screens. **Tenant timeline** (`/incidents/[id]`): breadcrumb, incident title, status badge and days-ignored badge in one row, up to 5 photo thumbnails, then a vertical timeline with mono timestamps and one event per row, and an "Add follow-up" button at the bottom. **Manager queue** (`/queue`): a table sorted by days ignored with columns Days ignored, Incident (title plus "Reported <time> by <channel>"), Unit, Status and Actions (Acknowledge, Respond, Resolve).
 
-| Component | Where it appears | Expected behavior |
+| Component | Where | Expected behavior |
 |---|---|---|
-| [PLACEHOLDER: e.g. `NavBar`] | All authenticated pages | Shows app name, current user, sign-out. Collapses to a menu under 640px. |
-| [PLACEHOLDER: e.g. `ItemList`] | [PLACEHOLDER] | [PLACEHOLDER: sorting, empty state text, loading skeleton] |
-| [PLACEHOLDER: e.g. `ItemForm`] | [PLACEHOLDER] | Inline Zod validation errors under each field; submit disabled while pending. |
-| [PLACEHOLDER] | [PLACEHOLDER] | [PLACEHOLDER] |
+| `IncidentForm` | `/incidents/new` | Fields from PRD US2. Inline Zod errors under each field. Submit disabled while uploading. |
+| `PhotoUploader` | in `IncidentForm` | Max 5, JPEG/PNG/HEIC, 10 MB each, previews with remove buttons. |
+| `IncidentTimeline` | `/incidents/[id]` | Events in time order, oldest first, mono timestamps. |
+| `DaysIgnoredBadge` | cards, queue, timeline | Uses `lib/days-ignored.ts`. Muted under 3 days, amber 3 to 7, red over 7. |
+| `StatusBadge` | everywhere | Text plus color, never color alone. |
+| `QueueTable` | `/queue` | Sorted by days ignored, highest first. Respond and Resolve open a dialog with a required note. |
 
-Every list or data view must have three states designed in: loading, empty (with a call to action), and error.
+Every list has loading (skeleton), empty (one line plus one button) and error (message plus retry) states.
 
-### 2.3 User flows the agent should follow
+### 2.3 User flows
 
-<!-- One numbered flow per core user story. E2E tests are written from these. -->
-1. Sign in: visitor opens `/`, clicks "Sign in", completes [PLACEHOLDER: OAuth provider], lands on [PLACEHOLDER: /dashboard].
-2. [PLACEHOLDER: core flow 1, written as steps, e.g. "User clicks Add X, fills fields A and B, submits, sees X at top of list with a success toast."]
-3. [PLACEHOLDER: core flow 2]
-4. [PLACEHOLDER: core flow 3]
+1. Sign in: `/login`, submit, land on `/incidents` (tenant), `/queue` (manager) or `/building` (organizer).
+2. Log an incident: `/incidents`, "Log an incident", fill the form, add photos, submit, land on `/incidents/[id]` showing a Reported event and "0 days ignored".
+3. Handle an incident: `/queue`, Acknowledge (event added, days-ignored stops), Respond with a note, Resolve with a note (row leaves the open list).
+4. Tenant sees the response on `/incidents/[id]` (after refresh in Sprint 1, live in Sprint 2).
+5. Organizer: `/building`, filter, Export PDF.
 
 ## 3. Scrum and workflow
 
-### 3.1 Roles and board
-
-- Product Owner and Scrum Master rotate each sprint. Sprint 1: PO [PLACEHOLDER], SM [PLACEHOLDER]. Sprint 2: swap.
+- PO and Scrum Master rotate each sprint. Sprint 1: PO Marcus, SM [PLACEHOLDER: partner name]. Sprint 2: swap.
 - Board columns: Backlog, Sprint Todo, In Progress, In Review, Done. Move the card when the state changes.
-- Milestones: "Sprint 1" (due [PLACEHOLDER: date]) and "Sprint 2" (due [PLACEHOLDER: date]).
-- Work only on issues that exist. If a request has no issue, propose one (title, acceptance criteria, labels) before writing code.
-
-### 3.2 Branches
-
-- One branch per issue, from up-to-date `main`: `<type>/<issue-number>-<short-kebab-description>`.
-- Types: `feature`, `fix`, `chore`, `docs`, `test`. Example: `feature/12-add-item-form`.
-- Never commit directly to `main`. Branch protection requires green CI and one partner approval.
-
-### 3.3 Commit messages
-
-Conventional Commits with the issue number:
-```
-<type>(<scope>): <imperative summary, max 72 chars> (#<issue>)
-
-<optional body: why the change was made>
-```
-Example: `feat(items): add expiration date field to item form (#12)`. Types: feat, fix, test, refactor, chore, docs, ci.
-Small commits. The red test commit comes before the implementation commit.
-
-### 3.4 Pull requests
-
-- Title: same format as a commit. Body uses `.github/pull_request_template.md`: `Closes #<issue>`, what changed, how it was tested, screenshots for UI, partner-review checkbox.
-- Each PR addresses one issue. Keep diffs under ~400 lines where possible.
-- Before opening: run the full check command (1.2) and self-review the diff with the AI against this file.
-- Merge only after CI is green, the preview deploy is checked, and the partner approves. Squash merge.
-
-### 3.5 Referencing issues in code
-
-- Use `Closes #N` in PR bodies so merging closes the issue. Use `Refs #N` in commits that only partially address it.
-- `TODO` comments must reference an issue: `// TODO(#34): handle pagination`. No bare TODOs.
+- Milestones: Sprint 1 due Nov 1, 2026. Sprint 2 due Nov 8, 2026. P2 due Nov 13, 2026.
+- Only work on issues that exist. If something needs doing and has no issue, propose one (title, AC, labels) before writing code.
+- Branches: one per issue from fresh `main`, `<type>/<issue>-<short-name>`, types `feature`, `fix`, `chore`, `docs`, `test`. Example: `feature/5-log-incident`.
+- Commits: Conventional Commits with the issue, `<type>(<scope>): <summary> (#N)`, imperative, under 72 chars. Example: `feat(incidents): add photo upload to incident form (#5)`. Types: feat, fix, test, refactor, chore, docs, ci.
+- PRs: same title format, body from `.github/pull_request_template.md` with `Closes #N`, how it was tested and screenshots for UI. One issue per PR, ideally under 400 lines. Merge only with green CI, a checked preview deploy and partner approval. Squash merge.
+- Never commit to `main` directly. `TODO`s must name an issue: `// TODO(#9): switch to SSE`.
 
 ## 4. Do's and don'ts
 
-### 4.1 Do
+### Do
 
-- Do read the linked issue and its acceptance criteria before writing code, and restate the plan in 3-5 bullets first.
-- Do follow existing patterns in the nearest similar file before inventing a new one.
-- Do keep changes scoped to the issue. Note unrelated problems as new issue suggestions instead of fixing them.
-- Do ask when a requirement is ambiguous instead of guessing.
+- Read the issue and its AC first, and write a 3 to 5 bullet plan before coding.
+- Copy the pattern of the nearest similar file before inventing a new one.
+- Keep changes inside the issue. Note unrelated problems as new issue suggestions.
+- Ask when a requirement is unclear.
 
-### 4.2 Don't
+### Don't
 
-- Don't add a dependency without saying why and checking it is maintained. Preferred: Zod (validation), date-fns (dates), Prisma (DB), [PLACEHOLDER: UI kit, e.g. shadcn/ui or none]. Avoid: moment, lodash (use native), axios (use fetch), CSS-in-JS libraries.
-- Don't write raw SQL strings built from user input. Don't disable lint or TypeScript rules to make an error go away.
+- Don't add a dependency without saying why. Preferred: Zod, date-fns, Prisma, NextAuth, `@vercel/blob`, `@react-pdf/renderer` (Sprint 2 export). Avoid: moment, lodash, axios, CSS-in-JS, UI kits.
+- Don't build SQL strings from user input. Don't disable lint or TS rules to get green.
 - Don't delete or weaken a failing test to make CI pass.
-- Don't create new top-level folders, rename files, or change the schema unless the issue asks for it.
+- Don't change the Prisma schema, rename files or add top-level folders unless the issue asks for it.
 
-### 4.3 Security requirements
+### Security
 
-- Every API route checks the session and that the requested record belongs to the current user (no IDOR).
-- Validate all input on the server with Zod, even if the client already validated.
-- Secrets live only in environment variables. Never commit `.env`; `.env.example` lists names only. Never log tokens or passwords.
-- Auth cookies: httpOnly, Secure, SameSite=Lax. No tokens in localStorage.
-- CI and preview deploys use a test database, never production.
+- Every route checks the session and role with `requireRole()`, then checks ownership: tenants only their incidents, managers only their buildings, organizers only their building.
+- Validate all input on the server with Zod. Check photo type and size on the server too.
+- Secrets only in env vars. Never commit `.env`; `.env.example` has names only. Never log passwords, tokens or photo URLs with tokens in them.
+- Passwords hashed with bcrypt. Session cookie httpOnly, Secure, SameSite=Lax. No tokens in localStorage.
+- The public score API returns aggregates only. No names, units, photos or incident text.
+- CI and preview deploys use a test database, never prod.
 
-### 4.4 Accessibility requirements
+### Accessibility
 
-- Target WCAG 2.1 AA. Semantic HTML first (`button`, `nav`, `main`, `label`); ARIA only when no native element fits.
-- Every input has a visible `<label>`. Every image has meaningful `alt` text or `alt=""` if decorative.
-- Everything works with keyboard only, with a visible focus ring. Color contrast at least 4.5:1 for text.
-- Don't convey status by color alone; pair it with text or an icon label.
-- Playwright E2E tests run an axe accessibility check on each page.
+- WCAG 2.1 AA. Semantic HTML first; ARIA only when there's no native element.
+- Every input has a visible `<label>`. Every photo thumbnail has alt text (category plus date).
+- Everything works with the keyboard, with a visible focus ring. Text contrast at least 4.5:1.
+- Status is never color alone; badges always include the word.
+- Playwright runs an axe check on every page.
