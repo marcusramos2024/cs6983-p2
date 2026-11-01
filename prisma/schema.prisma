@@ -1,0 +1,107 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  TENANT
+  MANAGER
+  ORGANIZER
+}
+
+enum IncidentCategory {
+  PEST
+  HEAT
+  LEAK
+  APPLIANCE
+  OTHER
+}
+
+enum ReportedVia {
+  TEXT
+  EMAIL
+  PORTAL
+  PHONE
+  IN_PERSON
+}
+
+enum IncidentStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+enum EventType {
+  REPORTED
+  PHOTO_ADDED
+  FOLLOW_UP
+  ACKNOWLEDGED
+  RESPONSE
+  RESOLVED
+}
+
+model User {
+  id         String          @id @default(cuid())
+  email      String          @unique
+  name       String?
+  role       Role            @default(TENANT)
+  unit       String?
+  buildingId String?
+  building   Building?       @relation(fields: [buildingId], references: [id])
+  incidents  Incident[]
+  events     IncidentEvent[]
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+}
+
+model Building {
+  id        String     @id @default(cuid())
+  name      String
+  address   String
+  users     User[]
+  incidents Incident[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Incident {
+  id          String           @id @default(cuid())
+  category    IncidentCategory
+  title       String
+  description String?
+  reportedAt  DateTime
+  reportedVia ReportedVia
+  status      IncidentStatus   @default(OPEN)
+  tenantId    String
+  tenant      User             @relation(fields: [tenantId], references: [id])
+  buildingId  String
+  building    Building         @relation(fields: [buildingId], references: [id])
+  photos      Photo[]
+  events      IncidentEvent[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model IncidentEvent {
+  id         String    @id @default(cuid())
+  type       EventType
+  body       String?
+  incidentId String
+  incident   Incident  @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  actorId    String
+  actor      User      @relation(fields: [actorId], references: [id])
+  createdAt  DateTime  @default(now())
+}
+
+model Photo {
+  id         String   @id @default(cuid())
+  url        String
+  takenAt    DateTime @default(now())
+  incidentId String
+  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+}
