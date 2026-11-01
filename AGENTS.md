@@ -13,7 +13,7 @@
 <!-- One paragraph so the agent knows what it's building and for whom. Source: docs/PRD.md. -->
 Paper Trail is a renter's evidence log. Tenants log incidents (pest, heat, leak, appliance, other) with photos, when they reported it and how, and a "days ignored" clock starts. Property managers work a queue of open incidents and acknowledge, respond and resolve, with every action timestamped. Building organizers see all incidents in their building and export a building-wide timeline PDF. There's also a public, anonymized building report card API.
 
-- Team: Marcus Ramos and [PLACEHOLDER: partner name]. CS 6983 Project 2, due Nov 13, 2026.
+- Team: Marcus Ramos. CS 6983 Project 2, due Nov 13, 2026.
 - PRD: [docs/PRD.md](docs/PRD.md). Design: [DESIGN.md](DESIGN.md). Wireframe: [docs/design/wireframe.html](docs/design/wireframe.html).
 
 ### 1.1 Stack and versions
@@ -133,13 +133,13 @@ Every list has loading (skeleton), empty (one line plus one button) and error (m
 
 ## 3. Scrum and workflow
 
-- PO and Scrum Master rotate each sprint. Sprint 1: PO Marcus, SM [PLACEHOLDER: partner name]. Sprint 2: swap.
+- Solo project: Marcus is Product Owner and Scrum Master for both sprints.
 - Board columns: Backlog, Sprint Todo, In Progress, In Review, Done. Move the card when the state changes.
 - Milestones: Sprint 1 due Nov 1, 2026. Sprint 2 due Nov 8, 2026. P2 due Nov 13, 2026.
 - Only work on issues that exist. If something needs doing and has no issue, propose one (title, AC, labels) before writing code.
 - Branches: one per issue from fresh `main`, `<type>/<issue>-<short-name>`, types `feature`, `fix`, `chore`, `docs`, `test`. Example: `feature/5-log-incident`.
 - Commits: Conventional Commits with the issue, `<type>(<scope>): <summary> (#N)`, imperative, under 72 chars. Example: `feat(incidents): add photo upload to incident form (#5)`. Types: feat, fix, test, refactor, chore, docs, ci.
-- PRs: same title format, body from `.github/pull_request_template.md` with `Closes #N`, how it was tested and screenshots for UI. One issue per PR, ideally under 400 lines. Merge only with green CI, a checked preview deploy and partner approval. Squash merge.
+- PRs: same title format, body from `.github/pull_request_template.md` with `Closes #N`, how it was tested and screenshots for UI. One issue per PR, ideally under 400 lines. Merge only with green CI, a checked preview deploy and a second read of the diff against this file. Squash merge.
 - Never commit to `main` directly. `TODO`s must name an issue: `// TODO(#9): switch to SSE`.
 
 ## 4. Do's and don'ts

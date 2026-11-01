@@ -2,7 +2,7 @@
 
 A renter's evidence log that turns a landlord fight into a case file.
 
-Team: Marcus Ramos and [PLACEHOLDER: partner name]. CS 6983 Project 2, due Nov 13, 2026.
+Team: Marcus Ramos (solo). CS 6983 Project 2, due Nov 13, 2026.
 
 ## Problem
 

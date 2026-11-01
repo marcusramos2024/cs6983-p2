@@ -134,7 +134,7 @@ if ! have_all_columns "$STATUS_FIELD"; then
       {name: "Backlog",     color: "GRAY",   description: "Not scheduled for the current sprint"},
       {name: "Sprint Todo", color: "BLUE",   description: "Committed for this sprint, not started"},
       {name: "In Progress", color: "YELLOW", description: "Branch open, work underway"},
-      {name: "In Review",   color: "PURPLE", description: "PR open, waiting on partner review"},
+      {name: "In Review",   color: "PURPLE", description: "PR open, waiting on review"},
       {name: "Done",        color: "GREEN",  description: "Merged to main"}
     ]}}')
   if gh api graphql --input - <<<"$PAYLOAD" >/dev/null 2>&1; then
@@ -177,7 +177,7 @@ for ((i = 0; i < COUNT; i++)); do
     "## User story\n\n" + .user_story + "\n\n" +
     "## Acceptance criteria\n\n" + ([.acceptance_criteria[] | "- [ ] " + .] | join("\n")) + "\n\n" +
     "## Estimate\n\n" + (.estimate // "TBD") + " points\n\n" +
-    "## Definition of done\n\n- [ ] Failing test committed first\n- [ ] CI green\n- [ ] Partner review approved\n- [ ] Preview deploy checked\n"
+    "## Definition of done\n\n- [ ] Failing test committed first\n- [ ] CI green\n- [ ] Diff reviewed against AGENTS.md\n- [ ] Preview deploy checked\n"
   ' <<<"$ISSUE" >"$BODY_FILE"
 
   URL=$(gh issue create --repo "$REPO" --title "$TITLE" --body-file "$BODY_FILE" \

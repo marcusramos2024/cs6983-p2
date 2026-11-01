@@ -26,5 +26,5 @@ Mockup: docs/design/<file>
 
 - [ ] Failing test committed first
 - [ ] CI green
-- [ ] Partner review approved
+- [ ] Diff reviewed against AGENTS.md
 - [ ] Preview deploy checked

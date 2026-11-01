@@ -15,5 +15,5 @@ Closes #
 
 ## Review
 
-- [ ] Partner reviewed and approved
+- [ ] Read the full diff a second time before merging
 - [ ] Self-reviewed the diff with AI against AGENTS.md

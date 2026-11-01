@@ -6,7 +6,7 @@ Marcus Ramos | CS 6983 AI Coding, Fall 2026 | P2: Paper Trail
 
 ## 1. From PRD and mockups to implementation
 
-For Project 1 I built Use It Up inside one Claude Web chat, so all the context lived in the conversation. P2 is split across a partner, an IDE, lots of short agent sessions and a real repo, so the context has to live in files the agent reads every time. AGENTS.md is that file. It points to the PRD, DESIGN.md and the wireframe instead of copying them, describes each screen and component in words because the agent can't always look at an image, and spells out the user flows.
+For Project 1 I built Use It Up inside one Claude Web chat, so all the context lived in the conversation. P2 is split across an IDE, lots of short agent sessions and a real repo, so the context has to live in files the agent reads every time. AGENTS.md is that file. It points to the PRD, DESIGN.md and the wireframe instead of copying them, describes each screen and component in words because the agent can't always look at an image, and spells out the user flows.
 
 The test on issue #5 ("Log an incident with photos") showed how much that matters. Both runs had the PRD, DESIGN.md and the wireframe in the folder. Without AGENTS.md the agent still built a working feature with passing tests, but it put everything under `src/`, used SQLite even though the README says Postgres, wrote its own validation instead of Zod, hard-coded six hex colors, and returned errors in three different shapes. With AGENTS.md it matched the folder layout, used Zod and Postgres, used `{ error: { code, message } }` everywhere, and used the theme tokens with no raw hex. The PRD told both runs what to build. The rules file is what made run B build it the way our project does things.
 
@@ -43,4 +43,4 @@ I haven't re-run with v2 yet. If I do, the workspaces need to be somewhere the a
 - Add a short testing note for the Sprint 2 features: the SSE stream in #8 and the PDF export in #10 both need examples of how to test them, or the agent will skip them like it skipped the badges.
 - Write the real-time pattern into section 1.3 once we pick it.
 - Keep CLAUDE.md as the one-line `@AGENTS.md` import so the same rules carry over to Claude Code in Week 9.
-- Go over AGENTS.md at the Sprint 1 retro with [PLACEHOLDER: partner name] and keep it under about 200 lines.
+- Go over AGENTS.md at the Sprint 1 retro and keep it under about 200 lines.

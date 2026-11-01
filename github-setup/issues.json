@@ -177,7 +177,7 @@
       "acceptance_criteria": [
         "README has the live URL, local setup, test commands and deploy steps",
         "docs/architecture.md has an architecture diagram and an ER diagram of the Prisma schema",
-        "Contribution log lists each partner's PRs and reviews",
+        "Contribution log lists the PRs and reviews",
         "Demo video link added before Nov 13"
       ],
       "labels": ["docs", "priority:low"],

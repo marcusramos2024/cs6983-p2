@@ -2,7 +2,7 @@
 
 ## Part A. Run the script
 
-1. Fill in every `[PLACEHOLDER: ...]` in `issues.json` from your PRD. Keep at least 10 issues and at least 5 per sprint (P2 requires 5+ per milestone).
+1. `issues.json` holds the Paper Trail backlog (13 issues, 7 in Sprint 1 and 6 in Sprint 2). Edit it there if the PRD changes.
 2. Install and authenticate:
    ```
    brew install gh jq
@@ -18,7 +18,7 @@
    ```
 4. Copy `../.github/` (issue and PR templates) and `../AGENTS.md` into the repo root and commit them on a `docs/` branch through a PR.
 
-If the repo belongs to your partner or an organization, you need write access to the repo, and the project is created under that owner.
+If the repo belongs to another account or an organization, you need write access to the repo, and the project is created under that owner.
 
 ## Part B. Board columns by hand (only if the script pauses)
 
