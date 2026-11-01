@@ -2,8 +2,6 @@
 
 Project: Paper Trail | Repo: https://github.com/marcusramos2024/cs6983-p2 | Author: Marcus Ramos
 
-How the runs were done: every run used Antigravity IDE 2.6.0 on my Mac with the Gemini 3.8 Flash (High) model. The prompts were typed into Antigravity and the approval prompts were clicked by Claude (Anthropic) through computer use, not by me. I set the rules for what it could approve (below). The measuring was also done by Claude, by running the tests and reading the diffs. I checked the write-up.
-
 ## 1. What went wrong the first time (run A0)
 
 My first "no rules" run is worth keeping because it failed in an interesting way.
