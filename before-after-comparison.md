@@ -80,7 +80,19 @@ Each result was copied out of the workspace (without node_modules) and checked f
 
 ## 3. Results
 
-Branches: `hw3/run-a-clean` (no rules) and `hw3/run-b-clean` (with rules). Screenshots of the end of each chat: `docs/hw3/run-a-chat.jpg`, `docs/hw3/run-b-chat.jpg`. Run A0 for reference: `docs/hw3/run-a0-chat.jpg`.
+Branches: `hw3/run-a-clean` (no rules) and `hw3/run-b-clean` (with rules).
+
+Screenshots of the Antigravity chats, in `docs/hw3/`. Run B's prompt is long, so Antigravity collapses it in the chat; the full text is in 2.4.
+
+| Image | What it shows |
+|---|---|
+| `run-a-1-summary.jpg` | Run A: the full prompt and the agent's "What was implemented" list (hand-written `validateIncidentInput`, components, API statuses) |
+| `run-a-2-verification.jpg` | Run A: the full prompt, commits `test: ... (issue #5)` and `feat: ... (issue #5)`, per-file test counts, 31 tests passing, 36 files +2084 |
+| `run-b-1-plan.jpg` | Run B: start of the (collapsed) prompt and the plan it gave before coding (reads US2, DESIGN.md, wireframe, AGENTS.md; branch `feature/5-log-incident`) |
+| `run-b-2-summary.jpg` | Run B: after "Yes, go ahead.", the summary of changes (`lib/db.ts`, `lib/auth.ts` with `requireRole()`, Prisma models) |
+| `run-b-3-verification.jpg` | Run B: commits `test(incidents): ... (#5)` and `feat(incidents): ... (#5)`, lint, typecheck, 40 tests, 89.62% on `lib/`, build, 36 files +2251 |
+| `run-a-chat.jpg`, `run-b-chat.jpg` | Whole Antigravity window at the end of each run, for context |
+| `run-a0-chat.jpg` | Run A0 (section 1), not used in the tables |
 
 ### 3.1 Numbers
 
@@ -88,7 +100,7 @@ Branches: `hw3/run-a-clean` (no rules) and `hw3/run-b-clean` (with rules). Scree
 |---|---|---|
 | Follow-up prompts | 0 | 1 ("Yes, go ahead." after the plan) |
 | Time | about 17 min | about 17 min |
-| Files the agent changed (its own count) | 36, +2084 | 36 |
+| Files the agent changed (its own count) | 36, +2084 | 36, +2251 |
 | App code lines (excluding tests and lockfile) | 1,280 | 1,100 |
 | Test code lines | 507 | 809 |
 | Test files / tests | 5 / 31 | 8 / 40 |
