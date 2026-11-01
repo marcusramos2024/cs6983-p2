@@ -10,6 +10,11 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
+function formatLocalDateTime(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 describe("IncidentForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -53,7 +58,7 @@ describe("IncidentForm", () => {
     const titleInput = screen.getByLabelText(/Title/i);
     fireEvent.change(titleInput, { target: { value: "Leaky ceiling" } });
 
-    const futureDate = new Date(Date.now() + 86400000).toISOString().slice(0, 16);
+    const futureDate = formatLocalDateTime(new Date(Date.now() + 86400000 * 2));
     const dateInput = screen.getByLabelText(/When did you report it/i);
     fireEvent.change(dateInput, { target: { value: futureDate } });
 
@@ -77,7 +82,7 @@ describe("IncidentForm", () => {
       target: { value: "Cabinet flooded" },
     });
 
-    const pastDate = new Date(Date.now() - 3600000).toISOString().slice(0, 16);
+    const pastDate = formatLocalDateTime(new Date(Date.now() - 3600000));
     fireEvent.change(screen.getByLabelText(/When did you report it/i), {
       target: { value: pastDate },
     });
