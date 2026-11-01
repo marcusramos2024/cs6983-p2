@@ -97,6 +97,7 @@ Patterns:
 - Unit tests for everything in `lib/services`, `lib/validation` and `lib/days-ignored.ts`. Integration tests for every route handler with a mocked session. One Playwright spec per user flow in section 2.3.
 - Always test: empty input, invalid input, signed out (401), wrong role (403), someone else's incident (404).
 - Coverage: 80% lines on `lib/`. CI fails below that.
+- Every component in `components/ui/` (StatusBadge, DaysIgnoredBadge, ...) gets at least one render test covering each variant. (Added after HW3: run B left both badges at 0% coverage.)
 - Use factories in `tests/factories/`. Freeze time with `vi.useFakeTimers()` for anything involving days ignored. Mock only external services (Blob storage, email).
 
 ## 2. PRD and design references
@@ -145,6 +146,7 @@ Every list has loading (skeleton), empty (one line plus one button) and error (m
 
 ### Do
 
+- Stay inside this repo folder. Don't list, read or run commands in parent or sibling folders, even to "check how it was done before". If you need context that isn't in this repo, ask. (Added after HW3: both test runs went looking through `~/Desktop` on their own.)
 - Read the issue and its AC first, and write a 3 to 5 bullet plan before coding.
 - Copy the pattern of the nearest similar file before inventing a new one.
 - Keep changes inside the issue. Note unrelated problems as new issue suggestions.
